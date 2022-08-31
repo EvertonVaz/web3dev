@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 // Helper que escrevemos para codificar em Base64
-import "libraries/Base64.sol";
+import "../libraries/Base64.sol";
 
 
 
@@ -34,6 +34,17 @@ contract MyEpicGame is ERC721 {
     // criamos um mapping tookenId => atributos das nfts
     mapping(uint => CharacterAttributes) public nftHolderAttributes;
 
+    struct BigBoss {
+        string name;
+        string imageURI;
+        uint hp;
+        uint maxHp;
+        uint attackDamage;
+    }
+
+    BigBoss public bigBoss;
+
+
     // mapping de um endereco => tokenId das bfts, nos da um jeito facil de armazenar o dono da nft e referencar ele depois
 
     mapping(address => uint) public nftHolders;
@@ -43,51 +54,68 @@ contract MyEpicGame is ERC721 {
         string[] memory characterNames,
         string[] memory characterImageURIs,
         uint[] memory characterHp,
-        uint[] memory characterAttackDmg
+        uint[] memory characterAttackDmg,
+
+        string memory bossName, // Essas novas variáveis serão passadas via run.js ou deploy.js
+        string memory bossImageURI,
+        uint bossHp,
+        uint bossAttackDamage
     ) ERC721("Heroes", "HERO") {
-
-    // Faz um loop nos personagens e salva os valores deles no contrato, para usarmos para mintar as NFTs
-
-    for(uint i = 0; i < characterNames.length; i++) {
-        defaultCharacters.push(CharacterAttributes({
-            characterIndex: i,
-            name: characterNames[i],
-            imageURI: characterImageURIs[i],
-            hp: characterHp[i],
-            maxHp: characterHp[i],
-            attackDamage: characterAttackDmg[i]
-        }));
-
-        CharacterAttributes memory c = defaultCharacters[i];
-        console.log("Personagem inicializado: %s com %s de HP, img %s", c.name, c.hp, c.imageURI);
-        }
-
-        _tokenIds.increment();
-    }
-
-    function mintCharacterNFT(uint _characterIndex) external {
-        uint newItemId = _tokenIds.current();
-
-        //Atribui o tokenID para o endereço da carteira de quem chamou o contrato
-        _safeMint(msg.sender, newItemId);
-
-        //mapeamos o tokenId => os atributos dos personagens.
-        nftHolderAttributes[newItemId] = CharacterAttributes({
-            characterIndex: _characterIndex,
-            name: defaultCharacters[_characterIndex].name,
-            imageURI: defaultCharacters[_characterIndex].imageURI,
-            hp: defaultCharacters[_characterIndex].hp,
-            maxHp: defaultCharacters[_characterIndex].maxHp,
-            attackDamage: defaultCharacters[_characterIndex].attackDamage
+    
+      // Inicializa o boss. Salva na nossa variável global de estado "bigBoss".
+        bigBoss = BigBoss({
+            name: bossName,
+            imageURI: bossImageURI,
+            hp: bossHp,
+            maxHp: bossHp,
+            attackDamage: bossAttackDamage
         });
 
-        console.log("Mintou NFT com tokenId %s e characterIndex %s", newItemId, _characterIndex);
+        console.log("Boss inicializado com sucesso %s com HP %s, img %s", bigBoss.name, bigBoss.hp, bigBoss.imageURI);
 
-        // mantem um jeito facil de ver quem possui a NFT
-        nftHolders[msg.sender] = newItemId;
 
-        // Incrementa para a proxima pessoa que usar
-        _tokenIds.increment();
+        // Faz um loop nos personagens e salva os valores deles no contrato, para usarmos para mintar as NFTs
+
+        for(uint i = 0; i < characterNames.length; i++) {
+            defaultCharacters.push(CharacterAttributes({
+                characterIndex: i,
+                name: characterNames[i],
+                imageURI: characterImageURIs[i],
+                hp: characterHp[i],
+                maxHp: characterHp[i],
+                attackDamage: characterAttackDmg[i]
+            }));
+
+            CharacterAttributes memory c = defaultCharacters[i];
+            console.log("Personagem inicializado: %s com %s de HP, img %s", c.name, c.hp, c.imageURI);
+            }
+
+            _tokenIds.increment();
+        }
+
+        function mintCharacterNFT(uint _characterIndex) external {
+            uint newItemId = _tokenIds.current();
+
+            //Atribui o tokenID para o endereço da carteira de quem chamou o contrato
+            _safeMint(msg.sender, newItemId);
+
+            //mapeamos o tokenId => os atributos dos personagens.
+            nftHolderAttributes[newItemId] = CharacterAttributes({
+                characterIndex: _characterIndex,
+                name: defaultCharacters[_characterIndex].name,
+                imageURI: defaultCharacters[_characterIndex].imageURI,
+                hp: defaultCharacters[_characterIndex].hp,
+                maxHp: defaultCharacters[_characterIndex].maxHp,
+                attackDamage: defaultCharacters[_characterIndex].attackDamage
+            });
+
+            console.log("Mintou NFT com tokenId %s e characterIndex %s", newItemId, _characterIndex);
+
+            // mantem um jeito facil de ver quem possui a NFT
+            nftHolders[msg.sender] = newItemId;
+
+            // Incrementa para a proxima pessoa que usar
+            _tokenIds.increment();
     }
 
     function tokenURI(uint _tokenId) public view override returns(string memory){
