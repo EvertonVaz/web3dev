@@ -46,8 +46,11 @@ contract MyEpicGame is ERC721 {
 
 
     // mapping de um endereco => tokenId das bfts, nos da um jeito facil de armazenar o dono da nft e referencar ele depois
-
     mapping(address => uint) public nftHolders;
+
+    // eventos para mostrar que a nft foi mintada e que o ataque foi realizado com sucesso
+    event CharacterNFTMinted(address sender, uint tokenId, uint characterIndex);
+    event AttackComplete(uint newBossHp, uint newPlayerHp);
 
     // Dados passados para o contrato quando ele for criado, inicializando os personagens
     constructor (
@@ -115,6 +118,7 @@ contract MyEpicGame is ERC721 {
 
             // Incrementa para a proxima pessoa que usar
             _tokenIds.increment();
+            emit CharacterNFTMinted(msg.sender, newItemId, _characterIndex);
     }
 
     function attackBoss() public {
@@ -155,6 +159,8 @@ contract MyEpicGame is ERC721 {
         // Mostra os ataques
         console.log("Jogador atacou o boss. Boss ficou com HP: %s", bigBoss.hp);
         console.log("Boss atacou o jogador. Jogador ficou com HP: %s\n", player.hp);
+
+        emit AttackComplete(bigBoss.hp, player.hp);
     }
 
     function tokenURI(uint _tokenId) public view override returns(string memory){
@@ -181,4 +187,29 @@ contract MyEpicGame is ERC721 {
 
         return output;
     }
+
+    function checkIfUserHasNFT() public view returns (CharacterAttributes memory) {
+        // Pega o tokenId no personagem NFT do usuario
+        uint userNftTokenId = nftHolders[msg.sender];
+
+        // Se o usuário tiver um tokenId no map, retorne seu personagem
+        if (userNftTokenId > 0) {
+            return nftHolderAttributes[userNftTokenId];
+        }
+        // Senão, retorne um personagem vazio
+        else {
+            CharacterAttributes memory emptyStruct;
+            return emptyStruct;
+        }
+    }
+
+    function getAllDefaultCharacter() public view returns (CharacterAttributes[] memory) {
+        return defaultCharacters;
+    }
+
+    function getBigBoss() public view returns (BigBoss memory) {
+        return bigBoss;
+    }
+
+
 }

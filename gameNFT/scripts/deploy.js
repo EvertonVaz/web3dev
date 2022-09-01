@@ -10,25 +10,15 @@ const main = async () => {
         ],
     [400, 200, 100, 150], // HP values
     [300, 150, 25, 100], // Attack damage values
+    // mint boss
     "Mind Flayer",
     "https://i.imgur.com/dvHOFBX.png",
     10000,
     50
   );
+
     await gameContract.deployed();
     console.log("Contrato implantado no endereço:", gameContract.address)
-  
-    let txn;
-    txn = await gameContract.mintCharacterNFT(0);
-    await txn.wait();
-
-    txn = await gameContract.attackBoss();
-    await txn.wait();
-    
-    txn = await gameContract.attackBoss();
-    await txn.wait();
-  
-    console.log("Fim do deploy, mint e attack!");
   };
   
   const runMain = async () => {
