@@ -8,6 +8,7 @@ typechain
 cache
 artifacts
 
-deploy.js
+
 progresso
 img
+hardhat.config.js

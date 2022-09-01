@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 // Helper que escrevemos para codificar em Base64
-import "../libraries/Base64.sol";
+import "libraries/Base64.sol";
 
 
 
@@ -75,7 +75,6 @@ contract MyEpicGame is ERC721 {
 
 
         // Faz um loop nos personagens e salva os valores deles no contrato, para usarmos para mintar as NFTs
-
         for(uint i = 0; i < characterNames.length; i++) {
             defaultCharacters.push(CharacterAttributes({
                 characterIndex: i,
@@ -116,6 +115,46 @@ contract MyEpicGame is ERC721 {
 
             // Incrementa para a proxima pessoa que usar
             _tokenIds.increment();
+    }
+
+    function attackBoss() public {
+        // Pegar o estado do NFT do jogador
+        uint nftTokenIdofPlayer = nftHolders[msg.sender];
+        CharacterAttributes storage player = nftHolderAttributes[nftTokenIdofPlayer];
+        
+        console.log("\nJogador com personagem %s ira atacar. Tem %s de HP e %s de poder de Ataque", player.name, player.hp, player.attackDamage);
+
+        console.log("\nBoss %s tem %s de HP e %s de PA", bigBoss.name, bigBoss.hp, bigBoss.attackDamage);
+
+        // Verificar se o jogador tem hp maior que 0
+        require(
+            player.hp > 0,
+            "Error: Personagem precisa ter HP para atacar o boss"
+        );
+
+        // Verificar se o boss tem o hp maior que 0
+        require(
+            bigBoss.hp > 0,
+            "Error: Boss precisa ter HP para atacar o personagem"
+        );
+
+        // Permitir o ataque do jogador ao boss
+        if (bigBoss.hp < player.attackDamage) {
+            bigBoss.hp = 0;
+        } else {
+            bigBoss.hp = bigBoss.hp - player.attackDamage;
+        }
+
+        // Permitir o ataque do boss ao jogador
+        if (player.hp < bigBoss.attackDamage) {
+            player.hp = 0;
+        } else {
+            player.hp = player.hp - bigBoss.attackDamage;
+        }
+
+        // Mostra os ataques
+        console.log("Jogador atacou o boss. Boss ficou com HP: %s", bigBoss.hp);
+        console.log("Boss atacou o jogador. Jogador ficou com HP: %s\n", player.hp);
     }
 
     function tokenURI(uint _tokenId) public view override returns(string memory){
